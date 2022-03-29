@@ -78,7 +78,7 @@ export function fetch(Collection, selector = {}, options = {}) {
    * `fromProp` can be specified as an array with single element
    * (ie `["fromProp"]`) if source document references multiple joined docs. */
   const withArrJoins = arrJoins.reduce((_docs, join) => {
-    const { _key, on } = join;
+    const { _key, Coll, on } = join;
     const [fromProp, toProp] = on;
     const fromArray = Array.isArray(fromProp);
     const propList = fromArray
@@ -87,13 +87,21 @@ export function fetch(Collection, selector = {}, options = {}) {
     const subSelector = { [toProp]: { $in: propList } };
 
     const subJoinFields = joinFields[_key];
-    const fields =
-      typeOf(subJoinFields) === "object" && toProp !== "_id"
-        ? { ...subJoinFields, [toProp]: 1 }
-        : subJoinFields;
+    const parsed = parseFields(
+      subJoinFields,
+      Object.keys(getJoins(Coll) || {})
+    );
+    const { _: own } = parsed;
+    const allOwnIncluded = !own || Object.keys(own).length <= 0;
+    const shouldAddToProp =
+      typeOf(subJoinFields) === "object" && !allOwnIncluded && toProp !== "_id";
+
+    const fields = shouldAddToProp
+      ? { ...subJoinFields, [toProp]: 1 }
+      : subJoinFields;
 
     return _docs.map(
-      createJoinFetcher({ ...join, ...restOptions, fields, subSelector })
+      createJoinFetcher({ join, fields, subSelector, options: restOptions })
     );
   }, docs);
 
@@ -105,10 +113,10 @@ export function fetch(Collection, selector = {}, options = {}) {
     const { _key, on } = join;
     const subSelector = on;
     return createJoinFetcher({
-      ...join,
-      ...restOptions,
+      join,
       fields: joinFields[_key],
       subSelector,
+      options: restOptions,
     });
   });
 
@@ -124,10 +132,10 @@ export function fetch(Collection, selector = {}, options = {}) {
       const { _key, on } = join;
 
       const joinFetcher = createJoinFetcher({
-        ...join,
-        ...restOptions,
+        join,
         fields: joinFields[_key],
         subSelector: isFunc(on) ? on(doc) : on,
+        options: restOptions,
       });
 
       return joinFetcher(_doc);
@@ -148,24 +156,19 @@ export function fetchOne(Collection, selector, options = {}) {
 /* Create a function that takes a `doc` and returns
  * a single joined doc (if `single` is true) or an array of joined docs. */
 function createJoinFetcher({
-  _key,
-  Coll,
-  on,
-  single,
-  postFetch,
+  join: { _key, Coll, on, single, postFetch, limit: joinLimit, ...joinRest },
   fields,
   subSelector,
-  ...rest
+  options,
 }) {
   const subOptions = {
-    ...rest,
-    fields: normalizeFields(fields, !Coll.fetch),
-    limit: single ? 1 : undefined,
+    ...options,
+    ...joinRest,
+    fields: normalizeFields(fields),
+    limit: single ? 1 : joinLimit || undefined,
   };
 
-  const joinedDocs = Coll.fetch
-    ? Coll.fetch(subSelector, subOptions)
-    : Coll.find(subSelector, subOptions).fetch();
+  const joinedDocs = fetch(Coll, subSelector, subOptions);
 
   return (doc) => {
     const raw = single ? joinedDocs[0] : joinedDocs;
