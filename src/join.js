@@ -4,7 +4,7 @@ const KNOWN_TYPES = ["array", "function", "object"];
 const knownTypesCaption = KNOWN_TYPES.join("', '");
 
 /* Single map that holds definitions of all collection hooks by collection name */
-let hooksDictionnary = {};
+let joinsDictionnary = {};
 
 /* Attach joins on the collection.
  * A join has the shape { Coll, on, single, ...options }, where
@@ -19,7 +19,7 @@ export default function join(Collection, joins) {
   const collName = Collection._name;
 
   if (!joins) {
-    hooksDictionnary[collName] = undefined;
+    joinsDictionnary[collName] = undefined;
     return;
   }
 
@@ -50,9 +50,9 @@ export default function join(Collection, joins) {
     }
   });
 
-  hooksDictionnary[collName] = { ...hooksDictionnary[collName], ...joins };
+  joinsDictionnary[collName] = { ...joinsDictionnary[collName], ...joins };
 }
 
 export function getJoins(Coll) {
-  return hooksDictionnary[Coll._name];
+  return joinsDictionnary[Coll._name] || {};
 }
