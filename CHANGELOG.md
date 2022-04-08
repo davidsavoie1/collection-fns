@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.4] - 2022-04-08
+
+### Grow
+
+- Use Map to store `augments` in insertion order so that they can be derived from previous ones;
+
+---
+
 ## [0.0.3] - 2022-04-08
 
 ### Grow

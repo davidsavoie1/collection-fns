@@ -3,7 +3,7 @@
 To publish a new version of the package :
 
 1. Merge changes to `main` branch;
-2. Remove `node_modules` directory, of present;
+2. Remove `node_modules` directory, if present;
 3. Update version number in `package.js`;
 4. Update `CHANGELOG.md`;
 5. Run `meteor publish`;
