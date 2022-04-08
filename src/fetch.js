@@ -1,3 +1,4 @@
+import { getAugmentFn } from "./augment";
 import { getJoins } from "./join";
 import { isFunc, typeOf } from "./util";
 
@@ -8,6 +9,8 @@ import { isFunc, typeOf } from "./util";
  * Joins are defined on the collection with the `join` method. */
 export function fetch(Collection, selector = {}, options = {}) {
   const joins = getJoins(Collection);
+  const augmenter = getAugmentFn(Collection);
+
   const collTransform = Collection._transform;
   const { fields, transform = collTransform, ...restOptions } = options;
 
@@ -44,7 +47,9 @@ export function fetch(Collection, selector = {}, options = {}) {
     usedJoinKeys.length <= 0 ||
     (fields && typeof fields !== "object")
   ) {
-    return Collection.find(selector, { ...options, fields: ownFields }).fetch();
+    return Collection.find(selector, { ...options, fields: ownFields }).map(
+      augmenter
+    );
   }
 
   /* === END FETCH WHEN NO JOINS === */
@@ -77,7 +82,7 @@ export function fetch(Collection, selector = {}, options = {}) {
    * fetch all sub docs at once before distributing them.
    * `fromProp` can be specified as an array with single element
    * (ie `["fromProp"]`) if source document references multiple joined docs. */
-  const withArrJoins = arrJoins.reduce((_docs, join) => {
+  const docsWithArrJoins = arrJoins.reduce((_docs, join) => {
     const { _key, Coll, on } = join;
     const [fromProp, toProp] = on;
     const fromArray = Array.isArray(fromProp);
@@ -122,7 +127,7 @@ export function fetch(Collection, selector = {}, options = {}) {
 
   /* For each document, apply all `objJoinsEnhancers` defined for object type joins,
    * then use function joins and associate their results. */
-  return withArrJoins.map((doc) => {
+  return docsWithArrJoins.map((doc) => {
     const docWithObjJoins = objJoinsEnhancers.reduce(
       (_doc, fn) => fn(_doc),
       doc
@@ -142,9 +147,14 @@ export function fetch(Collection, selector = {}, options = {}) {
     }, docWithObjJoins);
 
     /* Apply transform function to each document with all joins */
-    return isFunc(transform) ? transform(docWithFnJoins) : docWithFnJoins;
+    return augmenter(
+      isFunc(transform) ? transform(docWithFnJoins) : docWithFnJoins
+    );
   });
 }
+
+/* Alias for `fetch` that is less likely to interfere with Window.fetch. */
+export const fetchList = fetch;
 
 /* Same as `fetch`, but returns a single document. */
 export function fetchOne(Collection, selector, options = {}) {

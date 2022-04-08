@@ -1,3 +1,4 @@
+export { default as augment } from "./augment";
 export { default as count } from "./count";
 export { default as cursor } from "./cursor";
 export { fetch, fetchOne } from "./fetch";
