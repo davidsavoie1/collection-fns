@@ -1,6 +1,4 @@
-import { find } from "./find";
-
 /* Alias for `find`. Returns a cursor. */
-export default function cursor(...args) {
-  return find(...args);
+export default function cursor(Coll, ...args) {
+  return Coll.find(...args);
 }

@@ -1,7 +1,6 @@
 import { deepmerge } from "./dependencies";
 import { getUserId } from "./helpers";
 import { getHooks } from "./hook";
-import { find } from "./find";
 import { fetch } from "./fetch";
 import update from "./update";
 import { isEmpty, isFunc, isObj, isSelector } from "./util";
@@ -42,7 +41,7 @@ export default function remove(Coll, selector, callback) {
     const shouldKeepPred = res;
     let idsToKeep = [];
 
-    find(Coll, _selector, { transform: null }).forEach((doc) => {
+    Coll.find(_selector, { transform: null }).forEach((doc) => {
       const _id = doc._id;
       const shouldKeep = shouldKeepPred(doc);
 

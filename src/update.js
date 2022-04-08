@@ -1,5 +1,4 @@
 import { detailedDiff, EJSON, LocalCollection } from "./dependencies";
-import { fetch } from "./fetch";
 import { getUserId } from "./helpers";
 import { getHooks } from "./hook";
 import { get2ndLevelFields, isObj, isEmpty, isFunc, isModifier } from "./util";
@@ -84,10 +83,10 @@ export default function update(
    * before actual update to save their previous state. */
   let targetedDocs;
   if (isFunc(modifiedModifier) || !isEmpty(afterHooks)) {
-    targetedDocs = fetch(Coll, selector, {
+    targetedDocs = Coll.find(selector, {
       limit: options.multi ? undefined : 1,
       transform: null,
-    });
+    }).fetch();
   }
 
   function commitUpdate(update) {
@@ -132,7 +131,7 @@ export default function update(
    * that will be passed to each `afterUpdate` hooks. */
   const targetedDocsIds = targetedDocs.map((doc) => doc._id);
 
-  fetch(Coll, { _id: { $in: targetedDocsIds } }, { transform: null }).forEach(
+  Coll.find({ _id: { $in: targetedDocsIds } }, { transform: null }).forEach(
     (doc) => (modifiedDocsById[doc._id] = doc)
   );
 

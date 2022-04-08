@@ -1,4 +1,3 @@
-import { findOne } from "./find";
 import { getUserId } from "./helpers";
 import { getHooks } from "./hook";
 import { isEmpty, isFunc, isObj } from "./util";
@@ -44,7 +43,7 @@ export default function insert(Coll, doc, callback) {
     Meteor.defer(() => {
       const maybeFunc = hook(_id, { userId });
       if (isFunc(maybeFunc)) {
-        insertedDoc = insertedDoc || findOne(Coll, _id, { transform: null });
+        insertedDoc = insertedDoc || Coll.findOne(_id, { transform: null });
         maybeFunc(insertedDoc, { userId });
       }
     });
