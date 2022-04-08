@@ -1,7 +1,7 @@
 export { default as augment } from "./augment";
 export { default as count } from "./count";
 export { default as cursor } from "./cursor";
-export { fetch, fetchOne } from "./fetch";
+export { fetch, fetchList, fetchOne } from "./fetch";
 export { default as hook } from "./hook";
 export { default as join } from "./join";
 export { default as insert } from "./insert";
