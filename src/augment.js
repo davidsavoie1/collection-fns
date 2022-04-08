@@ -21,49 +21,44 @@ let augmentsDictionnary = {};
 export default function augment(Collection, augments = {}) {
   const collName = Collection._name;
 
-  const enhancedAugments = Object.fromEntries(
-    Object.entries(augments).map(([key, arg]) => {
-      const augmentType = typeOf(arg);
-      if (!KNOWN_TYPES.includes(augmentType)) {
+  let dict = augmentsDictionnary[collName];
+
+  if (!dict) {
+    dict = new Map();
+    augmentsDictionnary[collName] = dict;
+  }
+
+  Object.entries(augments).forEach(([key, arg]) => {
+    const augmentType = typeOf(arg);
+    if (!KNOWN_TYPES.includes(augmentType)) {
+      throw new Error(
+        `Augment '${key}' on collection '${collName}' has an unrecognized type of '${augmentType}'. Should be one of '${knownTypesCaption}'.`
+      );
+    }
+
+    /* If already a function, set entry as is. */
+    if (augmentType === "function") return dict.set(key, arg);
+
+    if (augmentType === "object") {
+      const { fn, when } = arg;
+      if (typeOf(fn) !== "function") {
         throw new Error(
-          `Augment '${key}' on collection '${collName}' has an unrecognized type of '${augmentType}'. Should be one of '${knownTypesCaption}'.`
+          `Augment '${key}' on collection '${collName}' has no 'fn' function specified.`
         );
       }
 
-      /* If already a function, return entry as is. */
-      if (augmentType === "function") return [key, arg];
-
-      if (augmentType === "object") {
-        const { fn, when } = arg;
-        if (typeOf(fn) !== "function") {
-          throw new Error(
-            `Augment '${key}' on collection '${collName}' has no 'fn' function specified.`
-          );
-        }
-
-        return [key, { fn, when: whenToPred(when) }];
-      }
-    })
-  );
-
-  augmentsDictionnary[collName] = {
-    ...augmentsDictionnary[collName],
-    ...enhancedAugments,
-  };
-}
-
-export function getAugments(Coll) {
-  return augmentsDictionnary[Coll._name] || {};
+      dict.set(key, { fn, when: whenToPred(when) });
+    }
+  });
 }
 
 export function getAugmentFn(Coll) {
-  const augments = getAugments(Coll);
-  const augmentEntries = Object.entries(augments);
+  const augments = augmentsDictionnary[Coll._name];
 
-  if (augmentEntries.length < 1) return (doc) => doc;
+  if (!augments || augments.size < 1) return (doc) => doc;
 
   return function augmentFn(doc) {
-    return augmentEntries.reduce((acc, [key, arg]) => {
+    return [...augments.entries()].reduce((acc, [key, arg]) => {
       const type = typeOf(arg);
 
       if (type === "function") return { ...acc, [key]: arg(acc) };
