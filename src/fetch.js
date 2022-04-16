@@ -118,6 +118,7 @@ export function fetch(Collection, selector = {}, options = {}) {
       ...options,
       ...joinRest,
       fields: normalizeFields(fields),
+      limit: undefined,
     };
 
     const allJoinedDocs = fetch(Coll, subSelector, subOptions);
