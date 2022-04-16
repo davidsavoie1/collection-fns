@@ -83,13 +83,22 @@ export function fetch(Collection, selector = {}, options = {}) {
    * `fromProp` can be specified as an array with single element
    * (ie `["fromProp"]`) if source document references multiple joined docs. */
   const docsWithArrJoins = arrJoins.reduce((_docs, join) => {
-    const { _key, Coll, on } = join;
-    const [fromProp, toProp] = on;
+    const {
+      _key,
+      Coll,
+      on,
+      single,
+      postFetch,
+      limit: joinLimit,
+      ...joinRest
+    } = join;
+
+    const [fromProp, toProp, toSelector = {}] = on;
     const fromArray = Array.isArray(fromProp);
     const propList = fromArray
-      ? _docs.flatMap((doc) => doc[fromProp])
+      ? _docs.flatMap((doc) => doc[fromProp[0]])
       : _docs.map((doc) => doc[fromProp]);
-    const subSelector = { [toProp]: { $in: propList } };
+    const subSelector = { ...toSelector, [toProp]: { $in: propList } };
 
     const subJoinFields = joinFields[_key];
     const parsed = parseFields(
@@ -105,9 +114,35 @@ export function fetch(Collection, selector = {}, options = {}) {
       ? { ...subJoinFields, [toProp]: 1 }
       : subJoinFields;
 
-    return _docs.map(
-      createJoinFetcher({ join, fields, subSelector, options: restOptions })
-    );
+    const subOptions = {
+      ...options,
+      ...joinRest,
+      fields: normalizeFields(fields),
+    };
+
+    const allJoinedDocs = fetch(Coll, subSelector, subOptions);
+    const indexedByToProp = allJoinedDocs.reduce((acc, joinedDoc) => {
+      const toPropValue = joinedDoc[toProp];
+      const prev = acc[toPropValue] || [];
+      return { ...acc, [toPropValue]: [...prev, joinedDoc] };
+    }, {});
+
+    return _docs.map((doc) => {
+      let joinedDocs = [];
+      if (fromArray) {
+        const fromValues = doc[fromProp[0]];
+        joinedDocs = fromValues.flatMap(
+          (fromValue) => indexedByToProp[fromValue] || []
+        );
+      } else {
+        const fromValue = doc[fromProp];
+        joinedDocs = indexedByToProp[fromValue] || [];
+      }
+
+      const raw = single ? joinedDocs[0] : joinedDocs;
+      const afterPostFetch = isFunc(postFetch) ? postFetch(raw, doc) : raw;
+      return { ...doc, [_key]: afterPostFetch };
+    });
   }, docs);
 
   /* If join is of type object, it is static and all docs will use the same joined docs.

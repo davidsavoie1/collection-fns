@@ -1,9 +1,8 @@
-import { deepmerge } from "./dependencies";
 import { getUserId } from "./helpers";
 import { getHooks } from "./hook";
 import { fetch } from "./fetch";
 import update from "./update";
-import { isEmpty, isFunc, isObj, isSelector } from "./util";
+import { assign, isEmpty, isFunc, isObj, isSelector } from "./util";
 
 /* `beforeRemove` hook:
  *   (selector, { userId }) => selector
@@ -49,19 +48,19 @@ export default function remove(Coll, selector, callback) {
 
       /* This document has a planned update */
       if (isObj(shouldKeep))
-        plannedUpdates[_id] = deepmerge(plannedUpdates[_id] || {}, shouldKeep);
+        plannedUpdates[_id] = assign(plannedUpdates[_id] || {}, shouldKeep);
     });
 
     /* Exclude kept document ids from the removal selector */
-    return deepmerge(_selector, { _id: { $nin: idsToKeep } });
+    return { $and: [_selector, { _id: { $nin: idsToKeep } }] };
   }, selector);
 
   let result;
 
   /* Execute planned updates */
-  Object.entries(plannedUpdates).forEach(([_id, modifier]) =>
-    update(Coll, { _id }, modifier)
-  );
+  Object.entries(plannedUpdates).forEach(([_id, modifier]) => {
+    update(Coll, { _id }, modifier);
+  });
 
   /* Abort removal if selector is not an object */
   if (!isSelector(modifiedSelector)) return result;

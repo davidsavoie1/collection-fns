@@ -3,10 +3,11 @@ import { getUserId } from "./helpers";
 import { getHooks } from "./hook";
 import { get2ndLevelFields, isObj, isEmpty, isFunc, isModifier } from "./util";
 
-/* `beforeUpdate` hook:
+/* `beforeUpdate`:
  *   (modifier, { fields, userId }) => modifier
  *   (modifier, { fields, userId }) => ({ before, after, diff, fields, userId }) => modifier)
- * `afterUpdate` hook:
+ * `validateUpdate`: Same as `beforeUpdate`
+ * `afterUpdate`:
  *   ({ before, after, diff, fields, userId }) => void */
 export default function update(
   Coll,

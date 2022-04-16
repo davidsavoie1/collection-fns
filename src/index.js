@@ -1,5 +1,6 @@
 export { default as augment } from "./augment";
 export { default as count } from "./count";
+export { default as createIndexes } from "./createIndexes";
 export { default as cursor } from "./cursor";
 export { fetch, fetchList, fetchOne } from "./fetch";
 export { default as hook } from "./hook";
