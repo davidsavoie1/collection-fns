@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.6] - 2022-04-15
+
+### Fix
+
+- Array joins take the limit option of main fetch options;
+
+---
+
 ## [0.0.5] - 2022-04-15
 
 ### Grow
