@@ -2,8 +2,9 @@ import { getUserId } from "./helpers";
 import { getHooks } from "./hook";
 import { isEmpty, isFunc, isObj } from "./util";
 
-/* `beforeInsert` hook: (doc, { userId }) => doc
- * `afterInsert` hook:
+/* `beforeInsert`: (doc, { userId }) => doc
+ * `validateInsert`: Same as `beforeInsert`
+ * `afterInsert`:
  *   (_id, { userId }) => void
  *   (_id, { userId }) => (doc, { userId }) => void */
 export default function insert(Coll, doc, callback) {

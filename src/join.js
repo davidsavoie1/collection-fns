@@ -9,7 +9,7 @@ let joinsDictionnary = {};
 /* Attach joins on the collection.
  * A join has the shape { Coll, on, single, ...options }, where
  *   - Coll: The joined Meteor collection
- *   - on: selector || fn(doc) => selector || [fromProp, toProp]
+ *   - on: selector || fn(doc) => selector || [fromProp, toProp, toSelector]
  *   - single: boolean. When `true`, linked as a single document, otherwise as an array
  *   - postFetch: fn(joinedDocsOrDoc, doc). Transformation function applied after fetch
  *   - ...options: Other options to be passed to the `fetch` or `find` operation.
