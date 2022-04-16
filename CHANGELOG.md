@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.5] - 2022-04-15
+
+### Grow
+
+- Add `createIndexes` function to simplify index creation and prevent errors from crashing startup;
+- Allow defining a complementary selector as third element in array joins;
+
+### Fix
+
+- Prevent very wrong and unwanted behavior where a `beforeRemove` hook removes all documents from collection;
+- Correct behavior of array joins that would fetch the same document for all when single option was used;
+
+---
+
 ## [0.0.4] - 2022-04-08
 
 ### Grow
