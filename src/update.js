@@ -60,11 +60,11 @@ export default function update(
 
     /* Current modifier is itself a function, so all subsequent ones
      * must return a function too. */
-    if (isFunc(_modifier))
+    if (isFunc(_modifier)) {
       return (before) => {
         const currModifier = _modifier(before);
-        const result = hook(_modifier, {
-          fields: get2ndLevelFields(_modifier),
+        const result = hook(currModifier, {
+          fields: get2ndLevelFields(currModifier),
           userId,
         });
 
@@ -76,6 +76,7 @@ export default function update(
         const cleaned = cleanModifier(result);
         return cleaned === undefined ? currModifier : cleaned;
       };
+    }
 
     return _modifier;
   }, modifier);

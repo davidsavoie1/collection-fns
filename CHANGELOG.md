@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.7] - 2022-04-26
+
+### Fix
+
+- Multiple callback type `beforeUpdate` hooks not working properly;
+
+---
+
 ## [0.0.6] - 2022-04-15
 
 ### Fix

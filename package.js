@@ -1,6 +1,6 @@
 Package.describe({
   name: "davidsavoie1:collection-fns",
-  version: "0.0.6",
+  version: "0.0.7",
   summary:
     "Functions used on Meteor collections to provide extra functionnality like hooks and joins.",
   git: "https://github.com/davidsavoie1/collection-fns",
