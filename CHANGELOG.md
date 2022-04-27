@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.8] - 2022-04-26
+
+### Fix
+
+- Crash when `fromValues` is undefined in multi array join;
+
+---
+
 ## [0.0.7] - 2022-04-26
 
 ### Fix
