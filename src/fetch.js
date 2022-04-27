@@ -131,7 +131,7 @@ export function fetch(Collection, selector = {}, options = {}) {
     return _docs.map((doc) => {
       let joinedDocs = [];
       if (fromArray) {
-        const fromValues = doc[fromProp[0]];
+        const fromValues = doc[fromProp[0]] || [];
         joinedDocs = fromValues.flatMap(
           (fromValue) => indexedByToProp[fromValue] || []
         );
