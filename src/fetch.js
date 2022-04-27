@@ -40,6 +40,8 @@ export function fetch(Collection, selector = {}, options = {}) {
     ownFields = { ...ownFields, ...necessaryFields };
   }
 
+  const normalizedOwnFields = normalizeFields(ownFields, true);
+
   /* Use joins only if they are defined and used. If fields are defined, but not
    * as an object, also omit joins. */
   if (
@@ -47,9 +49,10 @@ export function fetch(Collection, selector = {}, options = {}) {
     usedJoinKeys.length <= 0 ||
     (fields && typeof fields !== "object")
   ) {
-    return Collection.find(selector, { ...options, fields: ownFields }).map(
-      augmenter
-    );
+    return Collection.find(selector, {
+      ...options,
+      fields: normalizedOwnFields,
+    }).map(augmenter);
   }
 
   /* === END FETCH WHEN NO JOINS === */
@@ -57,7 +60,7 @@ export function fetch(Collection, selector = {}, options = {}) {
   /* When joins exist, exclude `transform` from first fetch to reapply it after joining. */
   const docs = Collection.find(selector, {
     ...restOptions,
-    fields: ownFields,
+    fields: normalizedOwnFields,
     transform: null,
   }).fetch();
 
@@ -230,6 +233,15 @@ function flattenFields(fields, root) {
   if (!fields) return fields;
 
   return Object.keys(fields).reduce((acc, k) => {
+    /* If key is a dot string, omit it if its sub root is
+     * already declared as selected to prevent path collisions. */
+    const dotStrIndex = k.indexOf(".");
+    if (dotStrIndex >= 0) {
+      const subRoot = k.slice(0, dotStrIndex);
+      const subRootSelection = fields[subRoot];
+      if (subRootSelection && typeof subRootSelection !== "object") return acc;
+    }
+
     const shouldSelect = fields[k];
     const dotKey = root ? [root, k].join(".") : k;
     if (typeof shouldSelect !== "object")
