@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.9] - 2022-04-29
+
+### Fix
+
+- Path collisions in dot string selections;
+
+---
+
 ## [0.0.8] - 2022-04-26
 
 ### Fix
