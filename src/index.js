@@ -6,6 +6,7 @@ export { fetch, fetchList, fetchOne } from "./fetch";
 export { default as hook } from "./hook";
 export { default as join } from "./join";
 export { default as insert } from "./insert";
+export { observe, observeChanges } from "./observe";
 export { default as remove } from "./remove";
 export { default as update } from "./update";
 export { default as upsert } from "./upsert";
