@@ -1,7 +1,7 @@
 babel-compiler@7.9.0
 babel-runtime@1.5.0
 base64@1.0.12
-davidsavoie1:collection-fns@0.0.9
+davidsavoie1:collection-fns@0.0.10
 diff-sequence@1.1.1
 dynamic-import@0.7.2
 ecmascript@0.16.2
@@ -15,7 +15,7 @@ id-map@1.1.1
 inter-process-messaging@0.1.1
 meteor@1.10.0
 minimongo@1.8.0
-modern-browsers@0.1.7
+modern-browsers@0.1.8
 modules@0.18.0
 modules-runtime@0.13.0
 mongo-decimal@0.1.2

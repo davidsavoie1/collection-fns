@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.10] - 2022-05-16
+
+### Add
+
+- `observe` and `observeChanges` functions in main exports;
+
+---
+
 ## [0.0.9] - 2022-04-29
 
 ### Fix
