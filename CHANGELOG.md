@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.11] - 2022-05-30
+
+### Fix
+
+- To array type joins not working, only from array joins are;
+
+---
+
 ## [0.0.10] - 2022-05-16
 
 ### Add
