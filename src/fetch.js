@@ -1,7 +1,7 @@
 import { getAugmentFn } from "./augment";
 import { flattenFields, normalizeFields } from "./helpers";
 import { getJoins } from "./join";
-import { isFunc, typeOf } from "./util";
+import { includesSome, isFunc, typeOf } from "./util";
 
 /* Retrieve documents of a collection, including joined collections subdocuments.
  * Joins are used only if they are declared explicitely in the query's `fields`.
@@ -102,7 +102,11 @@ export function fetch(Collection, selector = {}, options = {}) {
     const propList = fromArray
       ? _docs.flatMap((doc) => doc[fromProp[0]])
       : _docs.map((doc) => doc[fromProp]);
-    const subSelector = { ...toSelector, [toProp]: { $in: propList } };
+
+    const toArray = Array.isArray(toProp);
+    const subSelector = toArray
+      ? { ...toSelector, [toProp[0]]: { $elemMatch: { $in: propList } } }
+      : { ...toSelector, [toProp]: { $in: propList } };
 
     const subJoinFields = joinFields[_key];
     const parsed = parseFields(
@@ -126,17 +130,29 @@ export function fetch(Collection, selector = {}, options = {}) {
     };
 
     const allJoinedDocs = fetch(Coll, subSelector, subOptions);
-    const indexedByToProp = allJoinedDocs.reduce((acc, joinedDoc) => {
-      if (!joinedDoc) return acc;
 
-      const toPropValue = joinedDoc[toProp];
-      const prev = acc[toPropValue] || [];
-      return { ...acc, [toPropValue]: [...prev, joinedDoc] };
-    }, {});
+    const indexedByToProp = toArray
+      ? {}
+      : allJoinedDocs.reduce((acc, joinedDoc) => {
+          if (!joinedDoc) return acc;
+
+          const toPropValue = joinedDoc[toProp];
+          const prev = acc[toPropValue] || [];
+          return { ...acc, [toPropValue]: [...prev, joinedDoc] };
+        }, {});
 
     return _docs.map((doc) => {
       let joinedDocs = [];
-      if (fromArray) {
+
+      if (toArray) {
+        joinedDocs = allJoinedDocs.filter((joinedDoc) => {
+          const toList = joinedDoc[toProp[0]] || [];
+          if (!fromArray) return toList.includes(doc[fromProp]);
+
+          const fromList = doc[fromProp[0]] || [];
+          return includesSome(toList, fromList);
+        });
+      } else if (fromArray) {
         const fromValues = doc[fromProp[0]] || [];
         joinedDocs = fromValues.flatMap(
           (fromValue) => indexedByToProp[fromValue] || []
