@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.0] - 2022-05-30
+
+### Break
+
+- `skipInit` is now `true` by default in observers, so that methods can be split in two distinct phases;
+
+### Add
+
+- Split `added` and `initAdded` (and variations) in observers. Creates a breaking change where `skipInit` is now `true` by default;
+
+---
+
 ## [0.0.11] - 2022-05-30
 
 ### Fix
