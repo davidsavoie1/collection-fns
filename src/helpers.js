@@ -45,3 +45,61 @@ export function flattenFields(fields, root) {
     return { ...acc, ...flattenFields(shouldSelect, dotKey) };
   }, undefined);
 }
+
+/* Take a `fields` object and return sub fields by join key, with `_` for own fields. */
+export function parseFields(fields = true, joinKeys = []) {
+  const noFields = { _id: 1 };
+
+  if (typeof fields !== "object")
+    return fields ? { _: undefined } : { _: noFields };
+
+  return Object.entries(fields).reduce(
+    (acc, [key, val]) => {
+      const [, radical, subKey] = /(^\w+)[.]*([\w.]*)/g.exec(key) || [];
+
+      if (!joinKeys.includes(radical)) {
+        if (typeof val === "object") {
+          return { ...acc, _: { ...acc._, ...flattenFields(val, key) } };
+        }
+
+        return { ...acc, _: { ...acc._, [key]: !!val } };
+      }
+
+      if (!subKey) {
+        return { ...acc, [radical]: val };
+      }
+      return { ...acc, [radical]: { ...acc[radical], [subKey]: val } };
+    },
+    { _: {} }
+  );
+}
+
+export function dispatchFields(fields, joins) {
+  let { _: ownFields, ...joinFields } = parseFields(
+    fields,
+    Object.keys(joins || {})
+  );
+
+  /* Join keys must be explicitely specified in the query's `fields` option
+   * to prevent unnecessary overfetching. Otherwise, could also lead to potential infinite loops. */
+  const joinKeys = Object.keys(joins || {});
+  const usedJoinKeys = !fields ? [] : joinKeys.filter((key) => !!fields[key]);
+
+  const allOwnIncluded = !ownFields || Object.keys(ownFields).length <= 0;
+
+  /* If not all own fields included, try to derive necessary fields
+   * from used joins definitions (explicit when defined as `[]`,
+   * otherwise possibly specified as `fields` on join document). */
+  if (!allOwnIncluded) {
+    const necessaryFields = usedJoinKeys.reduce((acc, joinKey) => {
+      const { on, fields } = joins[joinKey];
+      const onFields = Array.isArray(on) ? { [on[0]]: 1 } : undefined;
+      if (!(onFields || fields)) return acc;
+      return { ...acc, ...onFields, ...fields };
+    }, undefined);
+
+    ownFields = { ...ownFields, ...necessaryFields };
+  }
+
+  return { _: normalizeFields(ownFields, true), ...joinFields };
+}

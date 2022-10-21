@@ -1,5 +1,5 @@
 import { getAugmentFn } from "./augment";
-import { flattenFields, normalizeFields } from "./helpers";
+import { dispatchFields, normalizeFields } from "./helpers";
 import { getJoins } from "./join";
 import { includesSome, isFunc, typeOf } from "./util";
 
@@ -15,33 +15,8 @@ export function fetch(Collection, selector = {}, options = {}) {
   const collTransform = Collection._transform;
   const { fields, transform = collTransform, ...restOptions } = options;
 
-  let { _: ownFields, ...joinFields } = parseFields(
-    fields,
-    Object.keys(joins || {})
-  );
-
-  /* Join keys must be explicitely specified in the query's `fields` option
-   * to prevent unnecessary overfetching. Otherwise, could also lead to potential infinite loops. */
-  const joinKeys = Object.keys(joins || {});
-  const usedJoinKeys = !fields ? [] : joinKeys.filter((key) => !!fields[key]);
-
-  const allOwnIncluded = !ownFields || Object.keys(ownFields).length <= 0;
-
-  /* If not all own fields included, try to derive necessary fields
-   * from used joins definitions (explicit when defined as `[]`,
-   * otherwise possibly specified as `fields` on join document). */
-  if (!allOwnIncluded) {
-    const necessaryFields = usedJoinKeys.reduce((acc, joinKey) => {
-      const { on, fields } = joins[joinKey];
-      const onFields = Array.isArray(on) ? { [on[0]]: 1 } : undefined;
-      if (!(onFields || fields)) return acc;
-      return { ...acc, ...onFields, ...fields };
-    }, undefined);
-
-    ownFields = { ...ownFields, ...necessaryFields };
-  }
-
-  const normalizedOwnFields = normalizeFields(ownFields, true);
+  const { _: ownFields, ...joinFields } = dispatchFields(fields, joins);
+  const usedJoinKeys = Object.keys(joinFields);
 
   /* Use joins only if they are defined and used. If fields are defined, but not
    * as an object, also omit joins. */
@@ -52,7 +27,7 @@ export function fetch(Collection, selector = {}, options = {}) {
   ) {
     return Collection.find(selector, {
       ...options,
-      fields: normalizedOwnFields,
+      fields: ownFields,
     }).map(augmenter);
   }
 
@@ -61,7 +36,7 @@ export function fetch(Collection, selector = {}, options = {}) {
   /* When joins exist, exclude `transform` from first fetch to reapply it after joining. */
   const docs = Collection.find(selector, {
     ...restOptions,
-    fields: normalizedOwnFields,
+    fields: ownFields,
     transform: null,
   }).fetch();
 
@@ -109,11 +84,10 @@ export function fetch(Collection, selector = {}, options = {}) {
       : { ...toSelector, [toProp]: { $in: propList } };
 
     const subJoinFields = joinFields[_key];
-    const parsed = parseFields(
+    const { _: own } = dispatchFields(
       subJoinFields,
       Object.keys(getJoins(Coll) || {})
     );
-    const { _: own } = parsed;
     const allOwnIncluded = !own || Object.keys(own).length <= 0;
     const shouldAddToProp =
       typeOf(subJoinFields) === "object" && !allOwnIncluded && toProp !== "_id";
@@ -219,6 +193,9 @@ export function fetchOne(Collection, selector, options = {}) {
   return fetch(Collection, selector, { ...options, limit: 1 })[0];
 }
 
+export const fetchIds = (Coll, selector) =>
+  fetchList(Coll, selector, { fields: { _id: 1 } }).map(({ _id }) => _id);
+
 /* HELPERS */
 
 /* Create a function that takes a `doc` and returns
@@ -243,31 +220,4 @@ function createJoinFetcher({
     const afterPostFetch = isFunc(postFetch) ? postFetch(raw, doc) : raw;
     return { ...doc, [_key]: afterPostFetch };
   };
-}
-
-function parseFields(fields = true, joinKeys = []) {
-  const noFields = { _id: 1 };
-
-  if (typeof fields !== "object")
-    return fields ? { _: undefined } : { _: noFields };
-
-  return Object.entries(fields).reduce(
-    (acc, [key, val]) => {
-      const [, radical, subKey] = /(^\w+)[.]*([\w.]*)/g.exec(key) || [];
-
-      if (!joinKeys.includes(radical)) {
-        if (typeof val === "object") {
-          return { ...acc, _: { ...acc._, ...flattenFields(val, key) } };
-        }
-
-        return { ...acc, _: { ...acc._, [key]: !!val } };
-      }
-
-      if (!subKey) {
-        return { ...acc, [radical]: val };
-      }
-      return { ...acc, [radical]: { ...acc[radical], [subKey]: val } };
-    },
-    { _: {} }
-  );
 }

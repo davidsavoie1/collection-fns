@@ -1,5 +1,5 @@
 /* Create indexes on the MongoDB collection.
- * Each index must be specified as { keys, ...options }.
+ * Each index must be specified as { index, ...options }.
  * Refer to [MongoDB documentation](https://docs.mongodb.com/manual/reference/method/db.collection.createIndex/index.html) */
 export default function createIndexes(Collection, ...indexes) {
   indexes.forEach(({ index, ...options }) => {

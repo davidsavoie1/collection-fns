@@ -4,6 +4,9 @@
 
 ### Add
 
+- Add `fetchIds` function in main export;
+- Add `publish` function in main export. This function allows for very performant publications that use collection joins!
+
 ### Fix
 
 - Do not flatten fields when at least one key starts with `$` (as in `{ $elemMatch: {} }` projection operator);
