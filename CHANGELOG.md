@@ -1,5 +1,15 @@
 # Changelog
 
+## [NEXT] -
+
+### Add
+
+### Fix
+
+- Do not flatten fields when at least one key starts with `$` (as in `{ $elemMatch: {} }` projection operator);
+
+---
+
 ## [0.1.0] - 2022-05-30
 
 ### Break

@@ -21,7 +21,13 @@ export function normalizeFields(fields, flatten = false) {
 export function flattenFields(fields, root) {
   if (!fields) return fields;
 
-  return Object.keys(fields).reduce((acc, k) => {
+  const keys = Object.keys(fields);
+
+  /* Do not flatten fields if they contain a key that starts with $ (such as { $elemMatch }) */
+  if (keys.some((k) => k.startsWith("$")))
+    return root ? { [root]: fields } : fields;
+
+  return keys.reduce((acc, k) => {
     /* If key is a dot string, omit it if its sub root is
      * already declared as selected to prevent path collisions. */
     const dotStrIndex = k.indexOf(".");
