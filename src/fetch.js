@@ -84,10 +84,8 @@ export function fetch(Collection, selector = {}, options = {}) {
       : { ...toSelector, [toProp]: { $in: propList } };
 
     const subJoinFields = joinFields[_key];
-    const { _: own } = dispatchFields(
-      subJoinFields,
-      Object.keys(getJoins(Coll) || {})
-    );
+    const { _: own } = dispatchFields(subJoinFields, getJoins(Coll) || {});
+
     const allOwnIncluded = !own || Object.keys(own).length <= 0;
     const shouldAddToProp =
       typeOf(subJoinFields) === "object" && !allOwnIncluded && toProp !== "_id";

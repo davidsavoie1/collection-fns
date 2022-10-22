@@ -2,6 +2,8 @@
 
 Functions used on Meteor collections to provide extra functionnality like performant and elegant hooks and inter-collections joins.
 
+> Documentation still in progress...
+
 # API
 
 ## `fetchList` and `fetchOne`

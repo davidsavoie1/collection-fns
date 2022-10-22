@@ -74,15 +74,12 @@ export function parseFields(fields = true, joinKeys = []) {
   );
 }
 
-export function dispatchFields(fields, joins) {
-  let { _: ownFields, ...joinFields } = parseFields(
-    fields,
-    Object.keys(joins || {})
-  );
+export function dispatchFields(fields, joins = {}) {
+  const joinKeys = Object.keys(joins);
+  let { _: ownFields, ...joinFields } = parseFields(fields, joinKeys);
 
   /* Join keys must be explicitely specified in the query's `fields` option
    * to prevent unnecessary overfetching. Otherwise, could also lead to potential infinite loops. */
-  const joinKeys = Object.keys(joins || {});
   const usedJoinKeys = !fields ? [] : joinKeys.filter((key) => !!fields[key]);
 
   const allOwnIncluded = !ownFields || Object.keys(ownFields).length <= 0;

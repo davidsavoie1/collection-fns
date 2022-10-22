@@ -1,5 +1,13 @@
 # Changelog
 
+## [NEXT] -
+
+### Fix
+
+- Fetch with joins not working anymore: wrong function parameter used;
+
+---
+
 ## [0.2.0] - 2022-10-21
 
 ### Add
