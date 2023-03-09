@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2] - 2023-03-09
+
+### Fix
+
+- Create indexes only on server collections;
+
+---
+
 ## [0.2.1] - 2022-10-21
 
 ### Fix
