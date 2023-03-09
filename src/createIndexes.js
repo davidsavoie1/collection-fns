@@ -2,6 +2,8 @@
  * Each index must be specified as { index, ...options }.
  * Refer to [MongoDB documentation](https://docs.mongodb.com/manual/reference/method/db.collection.createIndex/index.html) */
 export default function createIndexes(Collection, ...indexes) {
+  if (!Meteor.isServer) return;
+
   indexes.forEach(({ index, ...options }) => {
     try {
       Collection.createIndex(index, options);
